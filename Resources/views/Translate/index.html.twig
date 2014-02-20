@@ -11,6 +11,10 @@
                 $(this).parent().submit();
             });
             
+            $('#config input').blur(function() {
+                $(this).parent().submit();
+            });
+            
             {% if isWriteable is sameas(true) %}
             $('textarea')
                 .blur(function() {
@@ -74,6 +78,8 @@
             <option value="{{ locale }}"{% if locale == selectedLocale %} selected="selected"{% endif %}>{{ locale }}</option>
             {% endfor %}
         </select>
+        
+        <input type="text" name="filter" class="span4" value="{{filter}}" placeholder="Search"/>
     </form>
     
     {% if isWriteable is sameas(false) %}

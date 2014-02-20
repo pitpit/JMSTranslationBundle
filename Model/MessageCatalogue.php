@@ -130,6 +130,44 @@ class MessageCatalogue
 
         return $this->domains[$domain];
     }
+    
+    /**
+     * Search the given term in the domain, at the moment, you can add more than one term
+     * spearated by a white space char, (spaces, tabs ...) We match with the message if at least
+     * one term in the query matches with the message id, content or description.
+     *
+     * @param string $domain
+     * @param string $terms the terms to search for in the domain,
+     *  it can be a string with multiple terms separated by space
+     *
+     * @author Nicolas Macherey (contact@ucs-labs.com) for CREADS (creads.org)
+     */
+    public function searchDomain($domain,$terms = null) {
+        if (!$this->hasDomain($domain)) {
+            throw new InvalidArgumentException(sprintf('There is no domain with name "%s".', $domain));
+        }
+        
+        $messages = $this->domains[$domain];
+        if( $terms == null )
+            return $messages;
+        
+        $filteredMessages = new MessageCollection($this);
+        $terms = preg_replace("/[\s,]+/", "|", trim($terms));
+        $expr = "/($terms)/i";
+        
+        foreach( $messages->all() as $id => $message ) {
+            $matchInId = preg_match($expr, $id, $matches);
+            $matchInMessage = preg_match($expr, $message->getLocaleString(), $matches);
+            $matchInDescription = preg_match($expr, $message->getDesc(), $matches);
+            
+            if( !$matchInId && !$matchInMessage && !$matchInDescription )
+                continue;
+            
+            $filteredMessages->add($message);
+        }
+        
+        return $filteredMessages;
+    }
 
     public function getDomains()
     {

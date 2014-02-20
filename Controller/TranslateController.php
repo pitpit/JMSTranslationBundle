@@ -87,7 +87,11 @@ class TranslateController
             $locale,
             $domain
         );
-
+        
+        if( (!$filter = $this->request->query->get('filter')) ) {
+            $filter = null;
+        }
+        
         // create alternative messages
         // TODO: We should probably also add these to the XLIFF file for external translators,
         //       and the specification already supports it
@@ -109,7 +113,7 @@ class TranslateController
         }
 
         $newMessages = $existingMessages = array();
-        foreach ($catalogue->getDomain($domain)->all() as $id => $message) {
+        foreach ($catalogue->searchDomain($domain,$filter)->all() as $id => $message) {
             if ($message->isNew()) {
                 $newMessages[$id] = $message;
                 continue;
@@ -132,6 +136,7 @@ class TranslateController
             'isWriteable' => is_writeable($files[$domain][$locale][1]),
             'file' => (string) $files[$domain][$locale][1],
             'sourceLanguage' => $this->sourceLanguage,
+            'filter' => $filter,
         );
     }
 }
