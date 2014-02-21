@@ -14,7 +14,17 @@
                     <p><abbr title="{{ id }}">{{ id|truncate(20) }}</abbr></p>
                 </td>
                 <td>
-                    <textarea data-id="{{ id }}" class="span6"{% if isWriteable is sameas(false) %} readonly="readonly"{% endif %}>{{ message.localeString }}</textarea></td>
+                    {% if isWriteable is sameas(true) %}
+                        <textarea data-id="{{ id }}" 
+                          data-url="{{ path("jms_translation_update_message", {"config":selectedConfig,"domain": message.domain,"locale": selectedLocale}) }}"
+                          class="span6"
+                          >
+                            {{ message.localeString }}
+                        </textarea>
+                    {% else %}
+                        {{ message.localeString }}
+                    {% endif %}
+                </td>
                 <td>
                     {% if message.meaning is not empty %}
                         <h6>Meaning</h6>

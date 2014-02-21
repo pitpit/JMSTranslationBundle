@@ -5,8 +5,6 @@
     
     <script language="javascript" type="text/javascript">
         $(document).ready(function() {
-            var updateMessagePath = {{ path("jms_translation_update_message", {"config": selectedConfig, "domain": selectedDomain, "locale": selectedLocale})|json_encode|raw }};
-        
             $('#config select').change(function() {
                 $(this).parent().submit();
             });
@@ -15,11 +13,10 @@
                 $(this).parent().submit();
             });
             
-            {% if isWriteable is sameas(true) %}
             $('textarea')
                 .blur(function() {
                     var self = this;
-                    $.ajax(updateMessagePath + '?id=' + encodeURIComponent($(this).data('id')), {
+                    $.ajax($(this).data('url') + "?id=" + encodeURIComponent($(this).data('id')), {
                         type: 'POST',
                         headers: {'X-HTTP-METHOD-OVERRIDE': 'PUT'},
                         data: {'_method': 'PUT', 'message': $(this).val()},
@@ -53,7 +50,6 @@
                     $(this).parent().children('.alert-message').remove();
                 })
             ;
-            {% endif %}
         });
     </script>
 {% endblock %}
@@ -82,33 +78,34 @@
         <input type="text" name="filter" class="span4" value="{{filter}}" placeholder="Search"/>
     </form>
     
-    {% if isWriteable is sameas(false) %}
-    <div class="alert-message error">
-        The translation file "<strong>{{ file }}</strong>" is not writable.
-    </div>
-    {% endif %}
-    
-    {% if "xliff" != format %}
-    <div class="alert-message warning">
-        Due to limitations of the different loaders/dumpers, some features are unfortunately limited to the XLIFF format. 
+    {% for domain, file in files %}
+        <h1 class="page-header">Available Messages in Domain: {{domain}}</h1>
+        {% if file.isWriteable is sameas(false) %}
+        <div class="alert-message error">
+            The translation file "<strong>{{ file }}</strong>" is not writable.
+        </div>
+        {% endif %}
         
-        <br /><br />
+        {% if "xliff" != file.format %}
+        <div class="alert-message warning">
+            Due to limitations of the different loaders/dumpers, some features are unfortunately limited to the XLIFF format. 
+            
+            <br /><br />
+            
+            However, you can easily convert your existing translation files to the XLIFF format by running:<br />
+            <code>php app/console translation:extract {{ selectedLocale }} --config={{ selectedConfig }} --output-format=xliff</code>
+        </div>
+        {% endif %}
         
-        However, you can easily convert your existing translation files to the XLIFF format by running:<br />
-        <code>php app/console translation:extract {{ selectedLocale }} --config={{ selectedConfig }} --output-format=xliff</code>
-    </div>
-    {% endif %}
-
-    <h2>Available Messages</h2>
-    
-    {% if newMessages is not empty %}
-    <h3>New Messages</h3>
-    {% include "JMSTranslationBundle:Translate:messages.html.twig" with {"messages": newMessages} %}
-    {% endif %}
-    
-    {% if existingMessages is not empty %}
-    <h3>Existing Messages</h3>
-    {% include "JMSTranslationBundle:Translate:messages.html.twig" with {"messages": existingMessages} %}
-    {% endif %}
-
+        {% if file.newMessages is not empty %}
+        <h3>New Messages</h3>
+        {% include "JMSTranslationBundle:Translate:messages.html.twig" with {"messages": file.newMessages,"isWriteable":file.isWriteable,"alternativeMessages":file.alternativeMessages} %}
+        {% endif %}
+        
+        {% if file.existingMessages is not empty %}
+        <h3>Existing Messages</h3>
+        {% include "JMSTranslationBundle:Translate:messages.html.twig" with {"messages": file.existingMessages,"isWriteable":file.isWriteable,"alternativeMessages":file.alternativeMessages} %}
+        {% endif %}
+        
+    {% endfor %}
 {% endblock %}
