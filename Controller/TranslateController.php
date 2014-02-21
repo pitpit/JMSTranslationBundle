@@ -81,7 +81,7 @@ class TranslateController
         
             foreach( $files as $domain => $localeData ) {
                 $tempLocales = array_keys($localeData);
-                $allLocales = array_merge($allLocales,$tempLocales);
+                $allLocales = array_unique(array_merge($allLocales,$tempLocales));
 
                 $locales = array_keys($files[$domain]);
                 natsort($locales);
